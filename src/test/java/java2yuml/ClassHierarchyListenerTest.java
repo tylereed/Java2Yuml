@@ -51,7 +51,20 @@ public class ClassHierarchyListenerTest {
 				Arguments.of("Everything",
 						"public class Test extends Super implements I1, I2 { private class Inner extends Super2 implements I3, I4 { private class Inner2 extends Super3 implements I5, I6 {} } }",
 						List.of(buildCD("Test", "Super", "I1", "I2"), buildCD("Inner", "Super2", "I3", "I4"),
-								buildCD("Inner2", "Super3", "I5", "I6"))));
+								buildCD("Inner2", "Super3", "I5", "I6"))),
+				Arguments.of("Single Interface", "public interface TestInterface { }",
+						List.of(buildCD("TestInterface"))),
+				Arguments.of("With Inner Interface",
+						"public interface TestInterface { public interface InnerInterface {} }",
+						List.of(buildCD("TestInterface"), buildCD("InnerInterface"))),
+				Arguments.of("Class inner Interface", "public class Test { public interface InnerInterface {} }",
+						List.of(buildCD("Test"), List.of("InnerInterface"))),
+				Arguments.of("Interface inner Class", "public interface TestInterface { public class Inner {}}",
+						List.of(buildCD("TestInterface"), buildCD("Inner"))),
+				Arguments.of("With Super Interface", "public interface TestInterface extends SuperInterface {}",
+						List.of(buildCD("TestInterface", null, "SuperInterface"))),
+				Arguments.of("With 2 Super Interfaces", "public interface TestInterface extends SI1, SI2",
+						List.of(buildCD("TestInterface", null, "SI1", "SI2"))));
 	}
 
 	private static ClassDeclaration buildCD(String clazz) {
