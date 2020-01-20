@@ -7,6 +7,10 @@ import java.nio.file.Path;
 import java.nio.file.PathMatcher;
 import java.nio.file.Paths;
 import java.util.List;
+import java.util.logging.ConsoleHandler;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import java.util.logging.SimpleFormatter;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -23,7 +27,6 @@ import generated.Java8Parser;
 public class App {
 
 	public static void main(String[] args) {
-
 		Path javaFolder = Paths.get(args[0]);
 		walkFolder(javaFolder);
 	}
@@ -40,7 +43,7 @@ public class App {
 
 			for (Path javaFile : files) {
 				walkFile(javaFile, listener);
-				System.out.println();
+				// System.out.println();
 			}
 
 			for (var declaration : listener.getDeclarations()) {
@@ -69,7 +72,7 @@ public class App {
 
 		walkStream(stream, listener);
 	}
-	
+
 	public static void walkStream(CharStream stream, Java8Listener listener) {
 		ParseTree tree = createParseTree(stream);
 		var walker = new ParseTreeWalker();

@@ -3,6 +3,7 @@ package java2yuml;
 import java.util.List;
 
 import lombok.Builder;
+import lombok.Singular;
 import lombok.Value;
 
 @Value
@@ -10,7 +11,7 @@ import lombok.Value;
 public class ClassDeclaration {
 
 	private final String className, parentClassName;
-	private final List<String> interfaces;
+	@Singular private final List<String> interfaceNames;
 
 	public String toYuml() {
 		StringBuilder builder = new StringBuilder();
@@ -19,8 +20,8 @@ public class ClassDeclaration {
 			appendExtends(builder, parentClassName, className);
 		}
 
-		if (interfaces != null) {
-			for (String interface_ : interfaces) {
+		if (interfaceNames != null) {
+			for (String interface_ : interfaceNames) {
 				if (builder.length() > 0) {
 					builder.append(System.lineSeparator());
 				}

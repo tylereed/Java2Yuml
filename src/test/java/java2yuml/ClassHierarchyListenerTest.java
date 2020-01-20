@@ -1,6 +1,7 @@
 package java2yuml;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.containsInAnyOrder;
 
 import java.util.List;
 import java.util.stream.Stream;
@@ -20,12 +21,12 @@ public class ClassHierarchyListenerTest {
 		App.walkStream(CharStreams.fromString(clazz), listener);
 
 		List<ClassDeclaration> actual = listener.getDeclarations();
-		assertEquals(expected, actual);
+
+		assertThat(actual, containsInAnyOrder(expected.toArray()));
 	}
 
 	static Stream<Arguments> testWalkSource() {
-		return Stream.of(
-				Arguments.of("Single Class", "public class Test { }", List.of(buildCD("Test"))),
+		return Stream.of(Arguments.of("Single Class", "public class Test { }", List.of(buildCD("Test"))),
 				Arguments.of("With Extends", "public class Test extends Super { }", List.of(buildCD("Test", "Super"))),
 				Arguments.of("With 1 Interface", "public class Test implements I1 { }",
 						List.of(buildCD("Test", null, "I1"))),
@@ -35,9 +36,22 @@ public class ClassHierarchyListenerTest {
 						List.of(buildCD("Test", "Super", "I1"))),
 				Arguments.of("With Inner Class", "public class Test { private class Inner {} }",
 						List.of(buildCD("Test"), buildCD("Inner"))),
-				Arguments.of("With Nested Inner Class", "public class Test { private class Inner { private class Inner2 {}} }",
-						List.of(buildCD("Test"), buildCD("Inner"), buildCD("Inner2")))
-			);
+				Arguments.of("With Nested Inner Class",
+						"public class Test { private class Inner { private class Inner2 {}} }",
+						List.of(buildCD("Test"), buildCD("Inner"), buildCD("Inner2"))),
+				Arguments.of("With Interface, With Inner Class",
+						"public class Test implements I1 { private class Inner {} }",
+						List.of(buildCD("Test", null, "I1"), buildCD("Inner"))),
+				Arguments.of("With Extends, With Inner Class",
+						"public class Test extends Super { private class Inner {} }",
+						List.of(buildCD("Test", "Super"), buildCD("Inner"))),
+				Arguments.of("With Inner Class, With Interface",
+						"public class Test { private class Inner implements I1 {} }",
+						List.of(buildCD("Test"), buildCD("Inner", null, "I1"))),
+				Arguments.of("Everything",
+						"public class Test extends Super implements I1, I2 { private class Inner extends Super2 implements I3, I4 { private class Inner2 extends Super3 implements I5, I6 {} } }",
+						List.of(buildCD("Test", "Super", "I1", "I2"), buildCD("Inner", "Super2", "I3", "I4"),
+								buildCD("Inner2", "Super3", "I5", "I6"))));
 	}
 
 	private static ClassDeclaration buildCD(String clazz) {
@@ -49,7 +63,7 @@ public class ClassHierarchyListenerTest {
 	}
 
 	private static ClassDeclaration buildCD(String clazz, String parent, String... interfaces) {
-		return new ClassDeclaration(clazz, parent, interfaces == null ? null : List.of(interfaces));
+		return new ClassDeclaration(clazz, parent, interfaces == null ? List.of() : List.of(interfaces));
 	}
 
 }
