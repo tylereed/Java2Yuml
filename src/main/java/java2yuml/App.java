@@ -1,6 +1,8 @@
 package java2yuml;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -22,12 +24,14 @@ import generated.Java8Parser;
 
 public class App {
 
-	public static void main(String[] args) {
+	public static void main(String[] args) throws FileNotFoundException {
 		Path javaFolder = Paths.get(args[0]);
-		walkFolder(javaFolder);
+		try (PrintWriter out = new PrintWriter("out.yuml")) {
+			walkFolder(javaFolder, out);
+		}
 	}
 
-	public static void walkFolder(Path folder) {
+	public static void walkFolder(Path folder, PrintWriter writer) {
 
 		try (Stream<Path> walk = Files.walk(folder)) {
 
@@ -39,13 +43,12 @@ public class App {
 
 			for (Path javaFile : files) {
 				walkFile(javaFile, listener);
-				// System.out.println();
 			}
 
 			for (var declaration : listener.getDeclarations()) {
 				String diagram = declaration.toYuml();
 				if (diagram.length() > 0) {
-					System.out.println(diagram);
+					writer.println(diagram);
 				}
 			}
 

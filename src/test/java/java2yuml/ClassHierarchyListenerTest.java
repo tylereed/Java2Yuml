@@ -58,12 +58,12 @@ public class ClassHierarchyListenerTest {
 						"public interface TestInterface { public interface InnerInterface {} }",
 						List.of(buildCD("TestInterface"), buildCD("InnerInterface"))),
 				Arguments.of("Class inner Interface", "public class Test { public interface InnerInterface {} }",
-						List.of(buildCD("Test"), List.of("InnerInterface"))),
+						List.of(buildCD("Test"), buildCD("InnerInterface"))),
 				Arguments.of("Interface inner Class", "public interface TestInterface { public class Inner {}}",
 						List.of(buildCD("TestInterface"), buildCD("Inner"))),
-				Arguments.of("With Super Interface", "public interface TestInterface extends SuperInterface {}",
+				Arguments.of("With Super Interface", "public interface TestInterface extends SuperInterface { }",
 						List.of(buildCD("TestInterface", null, "SuperInterface"))),
-				Arguments.of("With 2 Super Interfaces", "public interface TestInterface extends SI1, SI2",
+				Arguments.of("With 2 Super Interfaces", "public interface TestInterface extends SI1, SI2 {}",
 						List.of(buildCD("TestInterface", null, "SI1", "SI2"))));
 	}
 

@@ -12,8 +12,10 @@ import java.util.logging.SimpleFormatter;
 
 import generated.Java8BaseListener;
 import generated.Java8Parser.ClassTypeContext;
+import generated.Java8Parser.ExtendsInterfacesContext;
 import generated.Java8Parser.InterfaceTypeContext;
 import generated.Java8Parser.NormalClassDeclarationContext;
+import generated.Java8Parser.NormalInterfaceDeclarationContext;
 import generated.Java8Parser.SuperclassContext;
 import generated.Java8Parser.SuperinterfacesContext;
 import java2yuml.ClassDeclaration.ClassDeclarationBuilder;
@@ -88,9 +90,27 @@ public class ClassHierarchyListener extends Java8BaseListener {
 	}
 
 	@Override
+	public void enterNormalInterfaceDeclaration(NormalInterfaceDeclarationContext ctx) {
+		log("enterNormalInterfaceDeclaration", () -> ctx.Identifier().toString());
+
+		if (current != null) {
+			stack.addLast(current);
+		}
+		current = new ClassDeclarationBuilder();
+		current.className(ctx.Identifier().toString());
+	}
+
+	@Override
 	public void enterSuperinterfaces(SuperinterfacesContext ctx) {
 		log("enterSuperinterfaces");
 
+		inSuperInterfaceDeclaration = true;
+	}
+	
+	@Override
+	public void enterExtendsInterfaces(ExtendsInterfacesContext ctx) {
+		log("enterExtendsInterfaces");
+		
 		inSuperInterfaceDeclaration = true;
 	}
 
@@ -102,12 +122,29 @@ public class ClassHierarchyListener extends Java8BaseListener {
 			current.interfaceName(ctx.classType().Identifier().toString());
 		}
 	}
+	
+	@Override
+	public void exitExtendsInterfaces(ExtendsInterfacesContext ctx) {
+		log("exitExtendsInterfaces");
+
+		inSuperInterfaceDeclaration = false;
+	}
 
 	@Override
 	public void exitSuperinterfaces(SuperinterfacesContext ctx) {
 		log("exitSuperinterfaces");
 
 		inSuperInterfaceDeclaration = false;
+	}
+
+	@Override
+	public void exitNormalInterfaceDeclaration(NormalInterfaceDeclarationContext ctx) {
+		log("exitNormalInterfaceDeclaration", () -> ctx.Identifier().toString());
+
+		if (current != null) {
+			classes.add(current.build());
+			current = stack.pollLast();
+		}
 	}
 
 	@Override
