@@ -8,8 +8,9 @@ import lombok.Value;
 
 @Value
 @Builder
-public class ClassDeclaration {
+public class Declaration {
 
+	private final DeclarationType type;
 	private final String className, parentClassName;
 	@Singular private final List<String> interfaceNames;
 

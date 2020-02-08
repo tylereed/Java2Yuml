@@ -15,12 +15,12 @@ public class ClassHierarchyListenerTest {
 
 	@ParameterizedTest(name = "{0}")
 	@MethodSource("testWalkSource")
-	public void testWalk(String name, String clazz, List<ClassDeclaration> expected) {
+	public void testWalk(String name, String clazz, List<Declaration> expected) {
 		var listener = new ClassHierarchyListener();
 
 		App.walkStream(CharStreams.fromString(clazz), listener);
 
-		List<ClassDeclaration> actual = listener.getDeclarations();
+		List<Declaration> actual = listener.getDeclarations();
 
 		assertThat(actual, containsInAnyOrder(expected.toArray()));
 	}
@@ -53,30 +53,45 @@ public class ClassHierarchyListenerTest {
 						List.of(buildCD("Test", "Super", "I1", "I2"), buildCD("Inner", "Super2", "I3", "I4"),
 								buildCD("Inner2", "Super3", "I5", "I6"))),
 				Arguments.of("Single Interface", "public interface TestInterface { }",
-						List.of(buildCD("TestInterface"))),
+						List.of(buildCD(DeclarationType.INTERFACE, "TestInterface"))),
 				Arguments.of("With Inner Interface",
 						"public interface TestInterface { public interface InnerInterface {} }",
-						List.of(buildCD("TestInterface"), buildCD("InnerInterface"))),
+						List.of(buildCD(DeclarationType.INTERFACE, "TestInterface"),
+								buildCD(DeclarationType.INTERFACE, "InnerInterface"))),
 				Arguments.of("Class inner Interface", "public class Test { public interface InnerInterface {} }",
-						List.of(buildCD("Test"), buildCD("InnerInterface"))),
+						List.of(buildCD("Test"), buildCD(DeclarationType.INTERFACE, "InnerInterface"))),
 				Arguments.of("Interface inner Class", "public interface TestInterface { public class Inner {}}",
-						List.of(buildCD("TestInterface"), buildCD("Inner"))),
+						List.of(buildCD(DeclarationType.INTERFACE, "TestInterface"), buildCD("Inner"))),
 				Arguments.of("With Super Interface", "public interface TestInterface extends SuperInterface { }",
-						List.of(buildCD("TestInterface", null, "SuperInterface"))),
+						List.of(buildCD(DeclarationType.INTERFACE, "TestInterface", null, "SuperInterface"))),
 				Arguments.of("With 2 Super Interfaces", "public interface TestInterface extends SI1, SI2 {}",
-						List.of(buildCD("TestInterface", null, "SI1", "SI2"))));
+						List.of(buildCD(DeclarationType.INTERFACE, "TestInterface", null, "SI1", "SI2"))),
+				Arguments.of("Generic Class", "public class Test<T> {}", List.of(buildCD("Test<T>"))),
+				Arguments.of("With Generic SuperClass", "public class Test extends Super<G> {}",
+						List.of(buildCD("Test", "Super<G>"))),
+				Arguments.of("Enum", "public enum TestEnum", List.of(buildCD(DeclarationType.ENUM, "TestEnum"))),
+				Arguments.of("Enum with Interface", "public enum TestEnum implements I1 {}",
+						List.of(buildCD(DeclarationType.ENUM, "TestEnum", null, "I1"))));
 	}
 
-	private static ClassDeclaration buildCD(String clazz) {
+	private static Declaration buildCD(String clazz) {
 		return buildCD(clazz, null);
 	}
 
-	private static ClassDeclaration buildCD(String clazz, String parent) {
+	private static Declaration buildCD(DeclarationType type, String clazz) {
+		return buildCD(type, clazz, null);
+	}
+
+	private static Declaration buildCD(String clazz, String parent) {
 		return buildCD(clazz, parent, (String[]) null);
 	}
 
-	private static ClassDeclaration buildCD(String clazz, String parent, String... interfaces) {
-		return new ClassDeclaration(clazz, parent, interfaces == null ? List.of() : List.of(interfaces));
+	private static Declaration buildCD(String clazz, String parent, String... interfaces) {
+		return buildCD(DeclarationType.CLASS, clazz, parent, interfaces);
+	}
+
+	private static Declaration buildCD(DeclarationType type, String clazz, String parent, String... interfaces) {
+		return new Declaration(type, clazz, parent, interfaces == null ? List.of() : List.of(interfaces));
 	}
 
 }
