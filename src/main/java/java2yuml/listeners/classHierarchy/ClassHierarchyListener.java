@@ -113,11 +113,6 @@ public class ClassHierarchyListener extends LoggingListener {
 	}
 
 	@Override
-	public void enterTypeParameters(TypeParametersContext ctx) {
-		log("enterTypeParameters");
-	}
-
-	@Override
 	public void enterTypeParameter(TypeParameterContext ctx) {
 		log("enterTypeParameter", () -> ctx.Identifier());
 		typeParameters.add(ctx.Identifier().toString());
@@ -156,7 +151,7 @@ public class ClassHierarchyListener extends LoggingListener {
 
 	@Override
 	public void enterTypeArguments(TypeArgumentsContext ctx) {
-		log("enterTypeArgument");
+		log("enterTypeArguments");
 		if (inSuperClassDeclaration || inSuperInterfaceDeclaration) {
 			typeParameters = new ArrayList<>();
 		}
@@ -208,7 +203,7 @@ public class ClassHierarchyListener extends LoggingListener {
 
 	@Override
 	public void exitInterfaceType(InterfaceTypeContext ctx) {
-		log("enterInterfaceType", () -> ctx.classType().Identifier());
+		log("exitInterfaceType", () -> ctx.classType().Identifier());
 
 		if (inSuperInterfaceDeclaration) {
 			if (typeParameters != null) {
@@ -267,9 +262,17 @@ public class ClassHierarchyListener extends LoggingListener {
 	}
 
 	private String getState() {
+		String tp;
+		if (typeParameters == null) {
+			tp = "(null)";
+		} else {
+			tp = "[" + String.join(", ", typeParameters) + "]";
+		}
+
 		return String.format(
-				"Current: %s, Number Declarations: %d, Stack size: %d, In Super: %b, In Super Interface: %b", current,
-				classes.size(), stack.size(), inSuperClassDeclaration, inSuperInterfaceDeclaration);
+				"Current: %s, Current Name: %s, Type Parameters: %s, Number Declarations: %d, Stack size: %d, In Super: %b, In Super Interface: %b",
+				current, currentName, tp, classes.size(), stack.size(), inSuperClassDeclaration,
+				inSuperInterfaceDeclaration);
 	}
 
 	private void log(String method) {

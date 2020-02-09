@@ -32,7 +32,7 @@ public class LoggingListener implements Java8Listener {
 
 	@Override
 	public void visitTerminal(TerminalNode node) {
-		log("visitTerminal");
+		//log("visitTerminal");
 	}
 
 	@Override
@@ -42,12 +42,12 @@ public class LoggingListener implements Java8Listener {
 
 	@Override
 	public void enterEveryRule(ParserRuleContext ctx) {
-		log("enterEveryRule");
+		//log("enterEveryRule");
 	}
 
 	@Override
 	public void exitEveryRule(ParserRuleContext ctx) {
-		log("exitEveryRule");
+		//log("exitEveryRule");
 	}
 
 	@Override
