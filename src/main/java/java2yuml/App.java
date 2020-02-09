@@ -18,6 +18,8 @@ import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.ParseTreeWalker;
 
+import com.google.common.graph.Graph;
+
 import generated.Java8Lexer;
 import generated.Java8Listener;
 import generated.Java8Parser;
@@ -26,12 +28,29 @@ public class App {
 
 	public static void main(String[] args) throws FileNotFoundException {
 		Path javaFolder = Paths.get(args[0]);
+
+		var listener = new ClassHierarchyListener();
+		walkFolder(javaFolder, listener);
+		List<Declaration> classes = listener.getDeclarations();
+		
 		try (PrintWriter out = new PrintWriter("out.yuml")) {
-			walkFolder(javaFolder, out);
+			printYuml(classes, out);
+		}
+		
+		Graph<Declaration> graph = Hierarchy.buildGraph(classes);
+	}
+	
+	public static void printYuml(List<Declaration> declarations, PrintWriter writer) {
+
+		for (var declaration : declarations) {
+			String diagram = declaration.toYuml();
+			if (diagram.length() > 0) {
+				writer.println(diagram);
+			}
 		}
 	}
 
-	public static void walkFolder(Path folder, PrintWriter writer) {
+	public static void walkFolder(Path folder, Java8Listener listener) {
 
 		try (Stream<Path> walk = Files.walk(folder)) {
 
@@ -39,18 +58,10 @@ public class App {
 
 			List<Path> files = walk.filter(f -> matcher.matches(f)).collect(Collectors.toList());
 
-			var listener = new ClassHierarchyListener();
-
 			for (Path javaFile : files) {
 				walkFile(javaFile, listener);
 			}
 
-			for (var declaration : listener.getDeclarations()) {
-				String diagram = declaration.toYuml();
-				if (diagram.length() > 0) {
-					writer.println(diagram);
-				}
-			}
 
 		} catch (IOException e) {
 			System.err.println("Unable to walk folder " + folder);
