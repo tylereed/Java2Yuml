@@ -1,4 +1,4 @@
-package java2yuml;
+package java2yuml.listeners.classHierarchy;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
@@ -12,6 +12,11 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
 import com.google.common.collect.ObjectArrays;
+
+import java2yuml.App;
+import java2yuml.Declaration;
+import java2yuml.DeclarationType;
+import java2yuml.listeners.classHierarchy.ClassHierarchyListener;
 
 public class ClassHierarchyListenerTest {
 
@@ -85,7 +90,7 @@ public class ClassHierarchyListenerTest {
 						buildCD(DeclarationType.INTERFACE, "TestInterface", null, "SI1", "SI2")),
 
 				buildTest("Generic Class", "public class Test<T> {}", buildCD("Test<T>")),
-				
+
 				buildTest("Generic Class with Wildcard", "public class Test<?> {}", buildCD("Test<?>")),
 
 				buildTest("Generic Class, 2 Type Params", "public class Test<T, U> {}", buildCD("Test<T, U>")),
@@ -99,8 +104,8 @@ public class ClassHierarchyListenerTest {
 				buildTest("With Generic SuperClass with Nested Type Params",
 						"public class Test extends Super<List<T>> {}", buildCD("Test", "Super<Map<T, U>>")),
 
-				buildTest("Generic Class With Generic SuperClass", "public class Test<T> extends Super<T> { }",
-						buildCD("Test<T>", "Super<T>")),
+				buildTest("Generic Class With Generic SuperClass", "public class Test<T> extends Super<U> { }",
+						buildCD("Test<T>", "Super<U>")),
 
 				buildTest("With Generic Interface", "public class Test implements I1<T> { }",
 						buildCD("Test", null, "I1<T>")),
@@ -114,15 +119,21 @@ public class ClassHierarchyListenerTest {
 				buildTest("Generic Interface", "public interface Test<T> {}",
 						buildCD(DeclarationType.INTERFACE, "Test<T>")),
 
+				buildTest("Generic Interface with Generic Super Interface",
+						"public interface Test<T> extends SI<U> { }", buildCD("Test<T>", null, "SI<U>")),
+
 				buildTest("Enum", "public enum TestEnum", buildCD(DeclarationType.ENUM, "TestEnum")),
 
 				buildTest("Enum with Interface", "public enum TestEnum implements I1 {}",
 						buildCD(DeclarationType.ENUM, "TestEnum", null, "I1")));
 	}
+	
+	private static Arguments buildTest(String name, String code, Declaration expected) {
+		return Arguments.of(name, code, List.of(expected));
+	}
 
-	private static Arguments buildTest(String name, String code, Declaration expected, Declaration... otherExpected) {
-		Declaration[] e = ObjectArrays.concat(expected, otherExpected);
-		return Arguments.of(name, code, List.of(e));
+	private static Arguments buildTest(String name, String code, Declaration... expected) {
+		return Arguments.of(name, code, List.of(expected));
 	}
 
 	private static Declaration buildCD(String clazz) {

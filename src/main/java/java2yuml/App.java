@@ -23,6 +23,7 @@ import com.google.common.graph.Graph;
 import generated.Java8Lexer;
 import generated.Java8Listener;
 import generated.Java8Parser;
+import java2yuml.listeners.classHierarchy.ClassHierarchyListener;
 
 public class App {
 

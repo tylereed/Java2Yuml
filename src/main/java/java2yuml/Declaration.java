@@ -2,12 +2,15 @@ package java2yuml;
 
 import java.util.List;
 
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Singular;
 import lombok.Value;
 
 @Value
 @Builder
+@AllArgsConstructor(access = AccessLevel.PUBLIC)
 public class Declaration {
 
 	private final DeclarationType type;

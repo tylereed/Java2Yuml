@@ -1,4 +1,4 @@
-package java2yuml;
+package java2yuml.listeners.classHierarchy;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -12,6 +12,7 @@ import java.util.logging.SimpleFormatter;
 
 import generated.Java8BaseListener;
 import generated.Java8Parser.ClassTypeContext;
+import generated.Java8Parser.ClassType_lfno_classOrInterfaceTypeContext;
 import generated.Java8Parser.EnumDeclarationContext;
 import generated.Java8Parser.ExtendsInterfacesContext;
 import generated.Java8Parser.InterfaceTypeContext;
@@ -20,11 +21,15 @@ import generated.Java8Parser.NormalInterfaceDeclarationContext;
 import generated.Java8Parser.SuperclassContext;
 import generated.Java8Parser.SuperinterfacesContext;
 import generated.Java8Parser.TypeArgumentContext;
+import generated.Java8Parser.TypeArgumentsContext;
 import generated.Java8Parser.TypeParameterContext;
 import generated.Java8Parser.TypeParametersContext;
+import java2yuml.Declaration;
+import java2yuml.DeclarationType;
+import java2yuml.LoggingListener;
 import java2yuml.Declaration.DeclarationBuilder;
 
-public class ClassHierarchyListener extends Java8BaseListener {
+public class ClassHierarchyListener extends LoggingListener {
 
 	private static final Logger logger;
 
@@ -133,6 +138,7 @@ public class ClassHierarchyListener extends Java8BaseListener {
 		log("enterSuperclass");
 
 		inSuperClassDeclaration = true;
+		typeParameters = null;
 	}
 
 	@Override
@@ -140,16 +146,24 @@ public class ClassHierarchyListener extends Java8BaseListener {
 		log("enterClassType", () -> ctx.Identifier().toString());
 
 		if (inSuperClassDeclaration) {
-			current.parentClassName(ctx.Identifier().toString());
+			currentName = ctx.Identifier().toString();
+			current.parentClassName(currentName);
 		}
 	}
 
 	@Override
-	public void enterTypeArgument(TypeArgumentContext ctx) {
+	public void enterTypeArguments(TypeArgumentsContext ctx) {
 		log("enterTypeArgument");
-		
 		if (inSuperClassDeclaration) {
-			//ctx.
+			typeParameters = new ArrayList<>();
+		}
+	}
+
+	@Override
+	public void enterClassType_lfno_classOrInterfaceType(ClassType_lfno_classOrInterfaceTypeContext ctx) {
+		log("enterClassType_lfno_classOrInterfaceType", () -> ctx.Identifier().toString());
+		if (inSuperClassDeclaration) {
+			typeParameters.add(ctx.Identifier().toString());
 		}
 	}
 
@@ -158,6 +172,10 @@ public class ClassHierarchyListener extends Java8BaseListener {
 		log("exitSuperclass");
 
 		inSuperClassDeclaration = false;
+		if (typeParameters != null) {
+			String name = currentName + "<" + String.join(", ", typeParameters) + ">";
+			current.parentClassName(name);
+		}
 	}
 
 	@Override
