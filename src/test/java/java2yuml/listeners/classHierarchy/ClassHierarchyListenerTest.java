@@ -91,8 +91,6 @@ public class ClassHierarchyListenerTest {
 
 				buildTest("Generic Class", "public class Test<T> {}", buildCD("Test<T>")),
 
-				buildTest("Generic Class with Wildcard", "public class Test<?> {}", buildCD("Test<?>")),
-
 				buildTest("Generic Class, 2 Type Params", "public class Test<T, U> {}", buildCD("Test<T, U>")),
 
 				buildTest("With Generic SuperClass", "public class Test extends Super<T> { }",
@@ -110,6 +108,9 @@ public class ClassHierarchyListenerTest {
 				buildTest("With Generic Interface", "public class Test implements I1<T> { }",
 						buildCD("Test", null, "I1<T>")),
 
+				buildTest("With 2 Generic Super Interfaces", "public class Test implements SI<T>, SI2<U> {}",
+						buildCD("Test", null, "SI<T>", "SI2<U>")),
+
 				buildTest("With Generic Interface with Nested Type Param", "public class Test implements I1<List<T>>",
 						buildCD("Test", null, "I1<List<T>>")),
 
@@ -120,20 +121,26 @@ public class ClassHierarchyListenerTest {
 						buildCD(DeclarationType.INTERFACE, "Test<T>")),
 
 				buildTest("Generic Interface with Generic Super Interface",
-						"public interface Test<T> extends SI<U> { }", buildCD("Test<T>", null, "SI<U>")),
+						"public interface Test<T> extends SI<U> { }",
+						buildCD(DeclarationType.INTERFACE, "Test<T>", null, "SI<U>")),
+
+				buildTest("Generic Interface with 2 Generic Super Interfaces",
+						"public interface Test extends SI<T>, SI2<U> {}",
+						buildCD(DeclarationType.INTERFACE, "Test", null, "SI<T>", "SI2<U>")),
 
 				buildTest("Enum", "public enum TestEnum", buildCD(DeclarationType.ENUM, "TestEnum")),
 
 				buildTest("Enum with Interface", "public enum TestEnum implements I1 {}",
 						buildCD(DeclarationType.ENUM, "TestEnum", null, "I1")));
 	}
-	
+
 	private static Arguments buildTest(String name, String code, Declaration expected) {
 		return Arguments.of(name, code, List.of(expected));
 	}
 
-	private static Arguments buildTest(String name, String code, Declaration... expected) {
-		return Arguments.of(name, code, List.of(expected));
+	private static Arguments buildTest(String name, String code, Declaration expected, Declaration... expectedOthers) {
+		Declaration[] e = ObjectArrays.concat(expected, expectedOthers);
+		return Arguments.of(name, code, List.of(e));
 	}
 
 	private static Declaration buildCD(String clazz) {

@@ -4,11 +4,14 @@ import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.function.Supplier;
 import java.util.logging.ConsoleHandler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.logging.SimpleFormatter;
+
+import org.antlr.v4.runtime.tree.TerminalNode;
 
 import generated.Java8BaseListener;
 import generated.Java8Parser.ClassTypeContext;
@@ -93,19 +96,19 @@ public class ClassHierarchyListener extends LoggingListener {
 
 	@Override
 	public void enterNormalClassDeclaration(NormalClassDeclarationContext ctx) {
-		log("enterNormalClassDeclaration", () -> ctx.Identifier().toString());
+		log("enterNormalClassDeclaration", () -> ctx.Identifier());
 		enterDeclaration(ctx.Identifier().toString(), DeclarationType.CLASS);
 	}
 
 	@Override
 	public void enterEnumDeclaration(EnumDeclarationContext ctx) {
-		log("enterEnumDeclaration", () -> ctx.Identifier().toString());
+		log("enterEnumDeclaration", () -> ctx.Identifier());
 		enterDeclaration(ctx.Identifier().toString(), DeclarationType.ENUM);
 	}
 
 	@Override
 	public void enterNormalInterfaceDeclaration(NormalInterfaceDeclarationContext ctx) {
-		log("enterNormalInterfaceDeclaration", () -> ctx.Identifier().toString());
+		log("enterNormalInterfaceDeclaration", () -> ctx.Identifier());
 		enterDeclaration(ctx.Identifier().toString(), DeclarationType.INTERFACE);
 	}
 
@@ -116,13 +119,13 @@ public class ClassHierarchyListener extends LoggingListener {
 
 	@Override
 	public void enterTypeParameter(TypeParameterContext ctx) {
-		log("enterTypeParameter", () -> ctx.Identifier().toString());
+		log("enterTypeParameter", () -> ctx.Identifier());
 		typeParameters.add(ctx.Identifier().toString());
 	}
 
 	@Override
 	public void exitTypeParameter(TypeParameterContext ctx) {
-		log("exitTypeParameter", () -> ctx.Identifier().toString());
+		log("exitTypeParameter", () -> ctx.Identifier());
 	}
 
 	@Override
@@ -143,7 +146,7 @@ public class ClassHierarchyListener extends LoggingListener {
 
 	@Override
 	public void enterClassType(ClassTypeContext ctx) {
-		log("enterClassType", () -> ctx.Identifier().toString());
+		log("enterClassType", () -> ctx.Identifier());
 
 		if (inSuperClassDeclaration) {
 			currentName = ctx.Identifier().toString();
@@ -154,15 +157,15 @@ public class ClassHierarchyListener extends LoggingListener {
 	@Override
 	public void enterTypeArguments(TypeArgumentsContext ctx) {
 		log("enterTypeArgument");
-		if (inSuperClassDeclaration) {
+		if (inSuperClassDeclaration || inSuperInterfaceDeclaration) {
 			typeParameters = new ArrayList<>();
 		}
 	}
 
 	@Override
 	public void enterClassType_lfno_classOrInterfaceType(ClassType_lfno_classOrInterfaceTypeContext ctx) {
-		log("enterClassType_lfno_classOrInterfaceType", () -> ctx.Identifier().toString());
-		if (inSuperClassDeclaration) {
+		log("enterClassType_lfno_classOrInterfaceType", () -> ctx.Identifier());
+		if (inSuperClassDeclaration || inSuperInterfaceDeclaration) {
 			typeParameters.add(ctx.Identifier().toString());
 		}
 	}
@@ -183,6 +186,7 @@ public class ClassHierarchyListener extends LoggingListener {
 		log("enterSuperinterfaces");
 
 		inSuperInterfaceDeclaration = true;
+		typeParameters = null;
 	}
 
 	@Override
@@ -190,14 +194,29 @@ public class ClassHierarchyListener extends LoggingListener {
 		log("enterExtendsInterfaces");
 
 		inSuperInterfaceDeclaration = true;
+		typeParameters = null;
 	}
 
 	@Override
 	public void enterInterfaceType(InterfaceTypeContext ctx) {
-		log("enterInterfaceType", () -> ctx.classType().Identifier().toString());
+		log("enterInterfaceType", () -> ctx.classType().Identifier());
 
 		if (inSuperInterfaceDeclaration) {
-			current.interfaceName(ctx.classType().Identifier().toString());
+			currentName = ctx.classType().Identifier().toString();
+		}
+	}
+
+	@Override
+	public void exitInterfaceType(InterfaceTypeContext ctx) {
+		log("enterInterfaceType", () -> ctx.classType().Identifier());
+
+		if (inSuperInterfaceDeclaration) {
+			if (typeParameters != null) {
+				String name = currentName + "<" + String.join(", ", typeParameters) + ">";
+				current.interfaceName(name);
+			} else {
+				current.interfaceName(currentName);
+			}
 		}
 	}
 
@@ -224,24 +243,27 @@ public class ClassHierarchyListener extends LoggingListener {
 
 	@Override
 	public void exitNormalInterfaceDeclaration(NormalInterfaceDeclarationContext ctx) {
-		log("exitNormalInterfaceDeclaration", () -> ctx.Identifier().toString());
+		log("exitNormalInterfaceDeclaration", () -> ctx.Identifier());
 		exitDeclaration();
 	}
 
 	@Override
 	public void exitEnumDeclaration(EnumDeclarationContext ctx) {
-		log("exitEnumDeclaration", () -> ctx.Identifier().toString());
+		log("exitEnumDeclaration", () -> ctx.Identifier());
 		exitDeclaration();
 	}
 
 	@Override
 	public void exitNormalClassDeclaration(NormalClassDeclarationContext ctx) {
-		log("exitNormalClassDeclaration", () -> ctx.Identifier().toString());
+		log("exitNormalClassDeclaration", () -> ctx.Identifier());
 		exitDeclaration();
 	}
 
-	private Supplier<String> getState(Supplier<String> message) {
-		return () -> "Id: " + message.get() + ", " + getState();
+	private Supplier<String> getState(Supplier<TerminalNode> message) {
+		return () -> {
+			String id = Optional.ofNullable(message.get()).map(n -> n.toString()).orElse("(null)");
+			return "Id: " + id + ", " + getState();
+		};
 	}
 
 	private String getState() {
@@ -254,7 +276,7 @@ public class ClassHierarchyListener extends LoggingListener {
 		logger.logp(Level.FINE, ClassHierarchyListener.class.toString(), method, this::getState);
 	}
 
-	private void log(String method, Supplier<String> message) {
+	private void log(String method, Supplier<TerminalNode> message) {
 		logger.logp(Level.FINE, ClassHierarchyListener.class.toString(), method, getState(message));
 	}
 
