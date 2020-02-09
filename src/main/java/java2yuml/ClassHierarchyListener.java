@@ -19,20 +19,39 @@ import generated.Java8Parser.NormalClassDeclarationContext;
 import generated.Java8Parser.NormalInterfaceDeclarationContext;
 import generated.Java8Parser.SuperclassContext;
 import generated.Java8Parser.SuperinterfacesContext;
+import generated.Java8Parser.TypeArgumentContext;
+import generated.Java8Parser.TypeParameterContext;
+import generated.Java8Parser.TypeParametersContext;
 import java2yuml.Declaration.DeclarationBuilder;
 
 public class ClassHierarchyListener extends Java8BaseListener {
 
 	private static final Logger logger;
 
+	/** Holds onto all the declarations encountered while parsing */
 	private ArrayList<Declaration> classes;
 
+	/** The current declaration we are building */
 	private DeclarationBuilder current;
 
+	/** Holds onto the non-generic portion of the name for generic declarations */
+	private String currentName;
+
+	/** Holds onto the type parameters of a generic declaration */
+	private ArrayList<String> typeParameters;
+
+	/**
+	 * Holds onto a stack of declarations to handle nested classes/interfaces/enums
+	 */
 	private ArrayDeque<DeclarationBuilder> stack;
 
+	/** Is set to true when entering an extends of a class */
 	private boolean inSuperClassDeclaration;
 
+	/**
+	 * Is set to true when entering an extends of an interface or an implements of a
+	 * class/enum
+	 */
 	private boolean inSuperInterfaceDeclaration;
 
 	static {
@@ -56,26 +75,57 @@ public class ClassHierarchyListener extends Java8BaseListener {
 		return Collections.unmodifiableList(classes);
 	}
 
-	@Override
-	public void enterNormalClassDeclaration(NormalClassDeclarationContext ctx) {
-		log("enterNormalClassDeclaration", () -> ctx.Identifier().toString());
+	private void enterDeclaration(String id, DeclarationType type) {
 
 		if (current != null) {
 			stack.addLast(current);
 		}
-		current = new DeclarationBuilder();
-		current.className(ctx.Identifier().toString()).type(DeclarationType.CLASS);
+		current = Declaration.builder();
+		current.className(id).type(type);
+		typeParameters = new ArrayList<>();
+		currentName = id;
 	}
-	
+
+	@Override
+	public void enterNormalClassDeclaration(NormalClassDeclarationContext ctx) {
+		log("enterNormalClassDeclaration", () -> ctx.Identifier().toString());
+		enterDeclaration(ctx.Identifier().toString(), DeclarationType.CLASS);
+	}
+
 	@Override
 	public void enterEnumDeclaration(EnumDeclarationContext ctx) {
 		log("enterEnumDeclaration", () -> ctx.Identifier().toString());
-		
-		if (current != null) {
-			stack.addLast(current);
-		}
-		current = new DeclarationBuilder();
-		current.className(ctx.Identifier().toString()).type(DeclarationType.ENUM);
+		enterDeclaration(ctx.Identifier().toString(), DeclarationType.ENUM);
+	}
+
+	@Override
+	public void enterNormalInterfaceDeclaration(NormalInterfaceDeclarationContext ctx) {
+		log("enterNormalInterfaceDeclaration", () -> ctx.Identifier().toString());
+		enterDeclaration(ctx.Identifier().toString(), DeclarationType.INTERFACE);
+	}
+
+	@Override
+	public void enterTypeParameters(TypeParametersContext ctx) {
+		log("enterTypeParameters");
+	}
+
+	@Override
+	public void enterTypeParameter(TypeParameterContext ctx) {
+		log("enterTypeParameter", () -> ctx.Identifier().toString());
+		typeParameters.add(ctx.Identifier().toString());
+	}
+
+	@Override
+	public void exitTypeParameter(TypeParameterContext ctx) {
+		log("exitTypeParameter", () -> ctx.Identifier().toString());
+	}
+
+	@Override
+	public void exitTypeParameters(TypeParametersContext ctx) {
+		log("exitTypeParameters");
+
+		String genericName = currentName + "<" + String.join(", ", typeParameters) + ">";
+		current.className(genericName);
 	}
 
 	@Override
@@ -87,10 +137,19 @@ public class ClassHierarchyListener extends Java8BaseListener {
 
 	@Override
 	public void enterClassType(ClassTypeContext ctx) {
-		log("exitSuperclass", () -> ctx.Identifier().toString());
+		log("enterClassType", () -> ctx.Identifier().toString());
 
 		if (inSuperClassDeclaration) {
 			current.parentClassName(ctx.Identifier().toString());
+		}
+	}
+
+	@Override
+	public void enterTypeArgument(TypeArgumentContext ctx) {
+		log("enterTypeArgument");
+		
+		if (inSuperClassDeclaration) {
+			//ctx.
 		}
 	}
 
@@ -99,17 +158,6 @@ public class ClassHierarchyListener extends Java8BaseListener {
 		log("exitSuperclass");
 
 		inSuperClassDeclaration = false;
-	}
-
-	@Override
-	public void enterNormalInterfaceDeclaration(NormalInterfaceDeclarationContext ctx) {
-		log("enterNormalInterfaceDeclaration", () -> ctx.Identifier().toString());
-
-		if (current != null) {
-			stack.addLast(current);
-		}
-		current = new DeclarationBuilder();
-		current.className(ctx.Identifier().toString()).type(DeclarationType.INTERFACE);
 	}
 
 	@Override
@@ -149,34 +197,29 @@ public class ClassHierarchyListener extends Java8BaseListener {
 		inSuperInterfaceDeclaration = false;
 	}
 
-	@Override
-	public void exitNormalInterfaceDeclaration(NormalInterfaceDeclarationContext ctx) {
-		log("exitNormalInterfaceDeclaration", () -> ctx.Identifier().toString());
-
+	private void exitDeclaration() {
 		if (current != null) {
 			classes.add(current.build());
 			current = stack.pollLast();
 		}
 	}
-	
+
+	@Override
+	public void exitNormalInterfaceDeclaration(NormalInterfaceDeclarationContext ctx) {
+		log("exitNormalInterfaceDeclaration", () -> ctx.Identifier().toString());
+		exitDeclaration();
+	}
+
 	@Override
 	public void exitEnumDeclaration(EnumDeclarationContext ctx) {
 		log("exitEnumDeclaration", () -> ctx.Identifier().toString());
-
-		if (current != null) {
-			classes.add(current.build());
-			current = stack.pollLast();
-		}
+		exitDeclaration();
 	}
 
 	@Override
 	public void exitNormalClassDeclaration(NormalClassDeclarationContext ctx) {
 		log("exitNormalClassDeclaration", () -> ctx.Identifier().toString());
-
-		if (current != null) {
-			classes.add(current.build());
-			current = stack.pollLast();
-		}
+		exitDeclaration();
 	}
 
 	private Supplier<String> getState(Supplier<String> message) {
