@@ -9,6 +9,10 @@ import java.nio.file.Path;
 import java.nio.file.PathMatcher;
 import java.nio.file.Paths;
 import java.util.List;
+import java.util.logging.ConsoleHandler;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import java.util.logging.SimpleFormatter;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -27,10 +31,23 @@ import java2yuml.listeners.classHierarchy.ClassHierarchyListener;
 
 public class App {
 
+	private static final Logger logger;
+
+	static {
+		logger = Logger.getLogger(ClassHierarchyListener.class.toString());
+		logger.setLevel(Level.ALL);
+		ConsoleHandler handler = new ConsoleHandler();
+		handler.setLevel(Level.ALL);
+		handler.setFormatter(new SimpleFormatter());
+		logger.addHandler(handler);
+		logger.fine("Starting application");
+	}	
+
 	public static void main(String[] args) throws FileNotFoundException {
 		Path javaFolder = Paths.get(args[0]);
 
 		var listener = new ClassHierarchyListener();
+		logger.finer("Walking folder " + javaFolder);
 		walkFolder(javaFolder, listener);
 		List<Declaration> classes = listener.getDeclarations();
 		
@@ -60,6 +77,7 @@ public class App {
 			List<Path> files = walk.filter(f -> matcher.matches(f)).collect(Collectors.toList());
 
 			for (Path javaFile : files) {
+				logger.finer("Walking file " + javaFile);
 				walkFile(javaFile, listener);
 			}
 

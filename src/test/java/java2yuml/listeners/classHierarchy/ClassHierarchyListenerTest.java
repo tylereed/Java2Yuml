@@ -100,7 +100,10 @@ public class ClassHierarchyListenerTest {
 						"public class Test extends Super<List<T>> {}", buildCD("Test", "Super<List<T>>")),
 
 				buildTest("With Generic SuperClass with Nested Type Params",
-						"public class Test extends Super<List<T>> {}", buildCD("Test", "Super<Map<T, U>>")),
+						"public class Test extends Super<Map<T, U>> {}", buildCD("Test", "Super<Map<T, U>>")),
+
+				buildTest("With Generic SuperClass with Nested Generic Type Params",
+						"public class Test extends HashMap<List<T>, List<U>> {}", buildCD("Test", "HashMap<List<T>, List<U>>")),
 
 				buildTest("Generic Class With Generic SuperClass", "public class Test<T> extends Super<U> { }",
 						buildCD("Test<T>", "Super<U>")),

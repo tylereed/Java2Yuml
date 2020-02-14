@@ -23,16 +23,15 @@ import generated.Java8Parser.NormalClassDeclarationContext;
 import generated.Java8Parser.NormalInterfaceDeclarationContext;
 import generated.Java8Parser.SuperclassContext;
 import generated.Java8Parser.SuperinterfacesContext;
-import generated.Java8Parser.TypeArgumentContext;
 import generated.Java8Parser.TypeArgumentsContext;
 import generated.Java8Parser.TypeParameterContext;
 import generated.Java8Parser.TypeParametersContext;
 import java2yuml.Declaration;
+import java2yuml.Declaration.DeclarationBuilder;
 import java2yuml.DeclarationType;
 import java2yuml.LoggingListener;
-import java2yuml.Declaration.DeclarationBuilder;
 
-public class ClassHierarchyListener extends LoggingListener {
+public class ClassHierarchyListener extends Java8BaseListener {
 
 	private static final Logger logger;
 
@@ -47,6 +46,9 @@ public class ClassHierarchyListener extends LoggingListener {
 
 	/** Holds onto the type parameters of a generic declaration */
 	private ArrayList<String> typeParameters;
+	
+	/** Holds onto nested generic declarations */
+	private ArrayDeque<ArrayList<String>> genericsStack;
 
 	/**
 	 * Holds onto a stack of declarations to handle nested classes/interfaces/enums
@@ -75,6 +77,7 @@ public class ClassHierarchyListener extends LoggingListener {
 	public ClassHierarchyListener() {
 		classes = new ArrayList<>();
 		stack = new ArrayDeque<>();
+		genericsStack = new ArrayDeque<>();
 		inSuperClassDeclaration = false;
 		inSuperInterfaceDeclaration = false;
 	}
@@ -90,7 +93,6 @@ public class ClassHierarchyListener extends LoggingListener {
 		}
 		current = Declaration.builder();
 		current.className(id).type(type);
-		typeParameters = new ArrayList<>();
 		currentName = id;
 	}
 
@@ -111,6 +113,12 @@ public class ClassHierarchyListener extends LoggingListener {
 		log("enterNormalInterfaceDeclaration", () -> ctx.Identifier());
 		enterDeclaration(ctx.Identifier().toString(), DeclarationType.INTERFACE);
 	}
+	
+	@Override
+	public void enterTypeParameters(TypeParametersContext ctx) {
+		log("enterTypeParameters");
+		typeParameters = new ArrayList<>();
+	}
 
 	@Override
 	public void enterTypeParameter(TypeParameterContext ctx) {
@@ -129,6 +137,7 @@ public class ClassHierarchyListener extends LoggingListener {
 
 		String genericName = currentName + "<" + String.join(", ", typeParameters) + ">";
 		current.className(genericName);
+		typeParameters = null;
 	}
 
 	@Override
@@ -136,7 +145,6 @@ public class ClassHierarchyListener extends LoggingListener {
 		log("enterSuperclass");
 
 		inSuperClassDeclaration = true;
-		typeParameters = null;
 	}
 
 	@Override
@@ -153,7 +161,12 @@ public class ClassHierarchyListener extends LoggingListener {
 	public void enterTypeArguments(TypeArgumentsContext ctx) {
 		log("enterTypeArguments");
 		if (inSuperClassDeclaration || inSuperInterfaceDeclaration) {
-			typeParameters = new ArrayList<>();
+			if (typeParameters == null) {
+				typeParameters = new ArrayList<>();
+			} else {
+				genericsStack.push(typeParameters);
+				typeParameters = new ArrayList<>();
+			}
 		}
 	}
 
@@ -162,6 +175,18 @@ public class ClassHierarchyListener extends LoggingListener {
 		log("enterClassType_lfno_classOrInterfaceType", () -> ctx.Identifier());
 		if (inSuperClassDeclaration || inSuperInterfaceDeclaration) {
 			typeParameters.add(ctx.Identifier().toString());
+		}
+	}
+	
+	@Override
+	public void exitTypeArguments(TypeArgumentsContext ctx) {
+		if (genericsStack.peek() != null) {
+			String generic = "<" + String.join(", ", typeParameters) + ">";
+			typeParameters = genericsStack.pop();
+			
+			int last = typeParameters.size() - 1;
+			String type = typeParameters.remove(last);
+			typeParameters.add(type + generic);
 		}
 	}
 
@@ -173,6 +198,7 @@ public class ClassHierarchyListener extends LoggingListener {
 		if (typeParameters != null) {
 			String name = currentName + "<" + String.join(", ", typeParameters) + ">";
 			current.parentClassName(name);
+			typeParameters = null;
 		}
 	}
 
@@ -181,7 +207,6 @@ public class ClassHierarchyListener extends LoggingListener {
 		log("enterSuperinterfaces");
 
 		inSuperInterfaceDeclaration = true;
-		typeParameters = null;
 	}
 
 	@Override
@@ -189,7 +214,6 @@ public class ClassHierarchyListener extends LoggingListener {
 		log("enterExtendsInterfaces");
 
 		inSuperInterfaceDeclaration = true;
-		typeParameters = null;
 	}
 
 	@Override
@@ -209,6 +233,7 @@ public class ClassHierarchyListener extends LoggingListener {
 			if (typeParameters != null) {
 				String name = currentName + "<" + String.join(", ", typeParameters) + ">";
 				current.interfaceName(name);
+				typeParameters = null;
 			} else {
 				current.interfaceName(currentName);
 			}
