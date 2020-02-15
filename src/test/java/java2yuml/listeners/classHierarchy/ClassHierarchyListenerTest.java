@@ -103,7 +103,8 @@ public class ClassHierarchyListenerTest {
 						"public class Test extends Super<Map<T, U>> {}", buildCD("Test", "Super<Map<T, U>>")),
 
 				buildTest("With Generic SuperClass with Nested Generic Type Params",
-						"public class Test extends HashMap<List<T>, List<U>> {}", buildCD("Test", "HashMap<List<T>, List<U>>")),
+						"public class Test extends HashMap<List<T>, List<U>> {}",
+						buildCD("Test", "HashMap<List<T>, List<U>>")),
 
 				buildTest("Generic Class With Generic SuperClass", "public class Test<T> extends Super<U> { }",
 						buildCD("Test<T>", "Super<U>")),
@@ -134,7 +135,10 @@ public class ClassHierarchyListenerTest {
 				buildTest("Enum", "public enum TestEnum", buildCD(DeclarationType.ENUM, "TestEnum")),
 
 				buildTest("Enum with Interface", "public enum TestEnum implements I1 {}",
-						buildCD(DeclarationType.ENUM, "TestEnum", null, "I1")));
+						buildCD(DeclarationType.ENUM, "TestEnum", null, "I1")),
+				
+				buildTest("FullyQualified Interface", "class Test implements u.I1<T> { }",
+						buildCD("Test", null, "I1<T>")));
 	}
 
 	private static Arguments buildTest(String name, String code, Declaration expected) {

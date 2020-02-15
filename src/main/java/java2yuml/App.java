@@ -34,7 +34,7 @@ public class App {
 	private static final Logger logger;
 
 	static {
-		logger = Logger.getLogger(ClassHierarchyListener.class.toString());
+		logger = Logger.getLogger(App.class.toString());
 		logger.setLevel(Level.ALL);
 		ConsoleHandler handler = new ConsoleHandler();
 		handler.setLevel(Level.ALL);

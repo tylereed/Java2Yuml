@@ -46,7 +46,7 @@ public class ClassHierarchyListener extends Java8BaseListener {
 
 	/** Holds onto the type parameters of a generic declaration */
 	private ArrayList<String> typeParameters;
-	
+
 	/** Holds onto nested generic declarations */
 	private ArrayDeque<ArrayList<String>> genericsStack;
 
@@ -113,7 +113,7 @@ public class ClassHierarchyListener extends Java8BaseListener {
 		log("enterNormalInterfaceDeclaration", () -> ctx.Identifier());
 		enterDeclaration(ctx.Identifier().toString(), DeclarationType.INTERFACE);
 	}
-	
+
 	@Override
 	public void enterTypeParameters(TypeParametersContext ctx) {
 		log("enterTypeParameters");
@@ -174,16 +174,20 @@ public class ClassHierarchyListener extends Java8BaseListener {
 	public void enterClassType_lfno_classOrInterfaceType(ClassType_lfno_classOrInterfaceTypeContext ctx) {
 		log("enterClassType_lfno_classOrInterfaceType", () -> ctx.Identifier());
 		if (inSuperClassDeclaration || inSuperInterfaceDeclaration) {
-			typeParameters.add(ctx.Identifier().toString());
+			if (typeParameters != null) {
+				typeParameters.add(ctx.Identifier().toString());
+			} else {
+				//TODO: handle package name for super class or interface
+			}
 		}
 	}
-	
+
 	@Override
 	public void exitTypeArguments(TypeArgumentsContext ctx) {
 		if (genericsStack.peek() != null) {
 			String generic = "<" + String.join(", ", typeParameters) + ">";
 			typeParameters = genericsStack.pop();
-			
+
 			int last = typeParameters.size() - 1;
 			String type = typeParameters.remove(last);
 			typeParameters.add(type + generic);
