@@ -10,8 +10,7 @@ import java.util.logging.ConsoleHandler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.logging.SimpleFormatter;
-
-import org.antlr.v4.runtime.tree.TerminalNode;
+import java.util.stream.Collectors;
 
 import generated.Java8BaseListener;
 import generated.Java8Parser.ClassTypeContext;
@@ -21,6 +20,7 @@ import generated.Java8Parser.ExtendsInterfacesContext;
 import generated.Java8Parser.InterfaceTypeContext;
 import generated.Java8Parser.NormalClassDeclarationContext;
 import generated.Java8Parser.NormalInterfaceDeclarationContext;
+import generated.Java8Parser.PackageDeclarationContext;
 import generated.Java8Parser.SuperclassContext;
 import generated.Java8Parser.SuperinterfacesContext;
 import generated.Java8Parser.TypeArgumentsContext;
@@ -42,6 +42,12 @@ public class ClassHierarchyListener extends Java8BaseListener {
 
 	/** Holds onto the non-generic portion of the name for generic declarations */
 	private String currentName;
+
+	/**
+	 * Holds onto the package names. First item is the declared package at the top
+	 * of the file. Anything additional are inner classes for scoping.
+	 */
+	private ArrayDeque<String> packageNames;
 
 	/** Holds onto the type parameters of a generic declaration */
 	private ArrayList<String> typeParameters;
@@ -76,6 +82,7 @@ public class ClassHierarchyListener extends Java8BaseListener {
 	public ClassHierarchyListener() {
 		classes = new ArrayList<>();
 		stack = new ArrayDeque<>();
+		packageNames = new ArrayDeque<>();
 		genericsStack = new ArrayDeque<>();
 		inSuperClassDeclaration = false;
 		inSuperInterfaceDeclaration = false;
@@ -85,14 +92,27 @@ public class ClassHierarchyListener extends Java8BaseListener {
 		return Collections.unmodifiableList(classes);
 	}
 
+	@Override
+	public void enterPackageDeclaration(PackageDeclarationContext ctx) {
+		var packages = ctx.Identifier().stream().map(Object::toString).collect(Collectors.toList());
+		var packageName = String.join(".", packages);
+		log("enterPackageName", () -> packageName);
+		packageNames.clear();
+		packageNames.add(packageName);
+	}
+
 	private void enterDeclaration(String id, DeclarationType type) {
 
 		if (current != null) {
 			stack.addLast(current);
 		}
+
+		var packages = String.join(".", packageNames);
+
 		current = Declaration.builder();
-		current.className(id).type(type);
+		current.className(id).type(type).packageName(packages);
 		currentName = id;
+		packageNames.add(currentName);
 	}
 
 	@Override
@@ -176,7 +196,7 @@ public class ClassHierarchyListener extends Java8BaseListener {
 			if (typeParameters != null) {
 				typeParameters.add(ctx.Identifier().toString());
 			} else {
-				//TODO: handle package name for super class or interface
+				// TODO: handle package name for super class or interface
 			}
 		}
 	}
@@ -261,6 +281,7 @@ public class ClassHierarchyListener extends Java8BaseListener {
 		if (current != null) {
 			classes.add(current.build());
 			current = stack.pollLast();
+			packageNames.pollLast();
 		}
 	}
 
@@ -282,7 +303,7 @@ public class ClassHierarchyListener extends Java8BaseListener {
 		exitDeclaration();
 	}
 
-	private Supplier<String> getState(Supplier<TerminalNode> message) {
+	private Supplier<String> getState(Supplier<? extends Object> message) {
 		return () -> {
 			String id = Optional.ofNullable(message.get()).map(n -> n.toString()).orElse("(null)");
 			return "Id: " + id + ", " + getState();
@@ -307,7 +328,7 @@ public class ClassHierarchyListener extends Java8BaseListener {
 		logger.logp(Level.FINE, ClassHierarchyListener.class.toString(), method, this::getState);
 	}
 
-	private void log(String method, Supplier<TerminalNode> message) {
+	private void log(String method, Supplier<? extends Object> message) {
 		logger.logp(Level.FINE, ClassHierarchyListener.class.toString(), method, getState(message));
 	}
 

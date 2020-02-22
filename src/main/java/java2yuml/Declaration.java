@@ -14,8 +14,12 @@ import lombok.Value;
 public class Declaration {
 
 	private final DeclarationType type;
-	private final String className, parentClassName;
+	private final String className, parentClassName, packageName;
 	@Singular private final List<String> interfaceNames;
+	
+	public String getFQN() {
+		return packageName + "." + className;
+	}
 
 	public String toYuml() {
 		StringBuilder builder = new StringBuilder();
