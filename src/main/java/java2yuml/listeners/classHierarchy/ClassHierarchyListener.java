@@ -29,7 +29,6 @@ import generated.Java8Parser.TypeParametersContext;
 import java2yuml.Declaration;
 import java2yuml.Declaration.DeclarationBuilder;
 import java2yuml.DeclarationType;
-import java2yuml.LoggingListener;
 
 public class ClassHierarchyListener extends Java8BaseListener {
 
