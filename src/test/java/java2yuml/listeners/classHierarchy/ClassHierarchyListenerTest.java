@@ -35,8 +35,7 @@ public class ClassHierarchyListenerTest {
 
 	static Stream<Arguments> testWalkSource() {
 		return Stream.of(
-				buildTest("Single Class", "public class Test { }",
-						new Declaration(CLASS, "Test", null, "", List.of())),
+				buildTest("Single Class", "public class Test { }", new Declaration(CLASS, "Test", null, "", List.of())),
 
 				buildTest("With Extends", "public class Test extends Super { }",
 						new Declaration(CLASS, "Test", "Super", "", List.of())),
@@ -133,11 +132,11 @@ public class ClassHierarchyListenerTest {
 				buildTest("With 2 Generic Super Interfaces", "public class Test implements SI<T>, SI2<U> {}",
 						new Declaration(CLASS, "Test", null, "", List.of("SI<T>", "SI2<U>"))),
 
-				buildTest("With Generic Interface with Nested Type Param", "public class Test implements I1<List<T>>",
+				buildTest("With Generic Interface with Nested Type Param", "public class Test implements I1<List<T>> {}",
 						new Declaration(CLASS, "Test", null, "", List.of("I1<List<T>>"))),
 
 				buildTest("With Generic Interface with Nested Type Params",
-						"public class Test implements I1<Map<T, U>>",
+						"public class Test implements I1<Map<T, U>> {}",
 						new Declaration(CLASS, "Test", null, "", List.of("I1<Map<T, U>>"))),
 
 				buildTest("Generic Interface", "public interface Test<T> {}",
@@ -151,7 +150,7 @@ public class ClassHierarchyListenerTest {
 						"public interface Test extends SI<T>, SI2<U> {}",
 						new Declaration(INTERFACE, "Test", null, "", List.of("SI<T>", "SI2<U>"))),
 
-				buildTest("Enum", "public enum TestEnum", new Declaration(ENUM, "TestEnum", null, "", List.of())),
+				buildTest("Enum", "public enum TestEnum {}", new Declaration(ENUM, "TestEnum", null, "", List.of())),
 
 				buildTest("Enum with Interface", "public enum TestEnum implements I1 {}",
 						new Declaration(ENUM, "TestEnum", null, "", List.of("I1"))),
@@ -167,7 +166,8 @@ public class ClassHierarchyListenerTest {
 
 				buildTest("Package With Nested Class", "package test; public class Outer { public class Inner {} }",
 						new Declaration(CLASS, "Outer", null, "test", List.of()),
-						new Declaration(CLASS, "Inner", null, "test.Outer", List.of())));
+						new Declaration(CLASS, "Inner", null, "test.Outer", List.of()))
+				);
 	}
 
 	private static Arguments buildTest(String name, String code, Declaration expected) {
