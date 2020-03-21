@@ -132,7 +132,8 @@ public class ClassHierarchyListenerTest {
 				buildTest("With 2 Generic Super Interfaces", "public class Test implements SI<T>, SI2<U> {}",
 						new Declaration(CLASS, "Test", null, "", List.of("SI<T>", "SI2<U>"))),
 
-				buildTest("With Generic Interface with Nested Type Param", "public class Test implements I1<List<T>> {}",
+				buildTest("With Generic Interface with Nested Type Param",
+						"public class Test implements I1<List<T>> {}",
 						new Declaration(CLASS, "Test", null, "", List.of("I1<List<T>>"))),
 
 				buildTest("With Generic Interface with Nested Type Params",

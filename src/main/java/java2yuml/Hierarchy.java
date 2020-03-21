@@ -13,7 +13,7 @@ public class Hierarchy {
 	public static Graph<Declaration> buildGraph(List<Declaration> classes) {
 		MutableGraph<Declaration> graph = GraphBuilder.directed().build();
 		
-		Map<String, Declaration> nameToClass = classes.stream().collect(Collectors.toMap(d -> d.getClassName(), d -> d));
+		Map<String, Declaration> nameToClass = classes.stream().collect(Collectors.toMap(d -> d.getFQN(), d -> d));
 		
 		for (var declaration : classes) {
 			Declaration parent = nameToClass.get(declaration.getParentClassName());

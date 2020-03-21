@@ -1,5 +1,6 @@
 package java2yuml.listeners.classHierarchy;
 
+import java.io.IOException;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -7,6 +8,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.function.Supplier;
 import java.util.logging.ConsoleHandler;
+import java.util.logging.FileHandler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.logging.SimpleFormatter;
@@ -72,6 +74,17 @@ public class ClassHierarchyListener extends Java8BaseListener {
 	static {
 		logger = Logger.getLogger(ClassHierarchyListener.class.toString());
 		logger.setLevel(Level.ALL);
+		
+		try {
+			FileHandler file = new FileHandler("log.txt");
+			file.setLevel(Level.ALL);
+			file.setFormatter(new SimpleFormatter());
+			logger.addHandler(file);
+			logger.fine("Starting application");
+		} catch (SecurityException | IOException e) {
+		}
+		
+		
 		ConsoleHandler handler = new ConsoleHandler();
 		handler.setLevel(Level.ALL);
 		handler.setFormatter(new SimpleFormatter());

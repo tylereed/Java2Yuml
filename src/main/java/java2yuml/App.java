@@ -40,7 +40,7 @@ public class App {
 
 	static {
 		logger = Logger.getLogger(App.class.toString());
-		logger.setLevel(Level.OFF);
+		logger.setLevel(Level.ALL);
 		ConsoleHandler handler = new ConsoleHandler();
 		handler.setLevel(Level.ALL);
 		handler.setFormatter(new SimpleFormatter());
@@ -60,15 +60,15 @@ public class App {
 			return listener.getDeclarations();
 		});
 
-		System.out.println("Testing parallel");
-		List<Declaration> classes2 = time(() -> walkFolderParallel(javaFolder, ClassHierarchyListener::new,
-				ClassHierarchyListener::getDeclarations));
+//		System.out.println("Testing parallel");
+//		List<Declaration> classes = time(() -> walkFolderParallel(javaFolder, ClassHierarchyListener::new,
+//				ClassHierarchyListener::getDeclarations));
 
-		try (PrintWriter out = new PrintWriter("out.yuml")) {
-			printYuml(classes, out);
-		}
+//		try (PrintWriter out = new PrintWriter("out.yuml")) {
+//			printYuml(classes, out);
+//		}
 
-		// Graph<Declaration> graph = Hierarchy.buildGraph(classes);
+		Graph<Declaration> graph = Hierarchy.buildGraph(classes);
 	}
 
 	private static <T> T time(Supplier<T> task) {

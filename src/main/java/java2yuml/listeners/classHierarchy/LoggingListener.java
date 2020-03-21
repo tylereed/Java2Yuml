@@ -1,4 +1,4 @@
-package java2yuml;
+package java2yuml.listeners.classHierarchy;
 
 import java.util.logging.ConsoleHandler;
 import java.util.logging.Level;
