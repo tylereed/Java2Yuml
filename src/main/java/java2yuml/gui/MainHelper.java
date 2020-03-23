@@ -1,9 +1,9 @@
 package java2yuml.gui;
 
-import java.io.IOException;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
 
-import javafx.application.Application;
-import javafx.fxml.FXMLLoader;
+import de.saxsys.mvvmfx.FluentViewLoader;
+import de.saxsys.mvvmfx.spring.MvvmfxSpringApplication;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
@@ -15,38 +15,23 @@ import javafx.stage.Stage;
  * 
  * @author tyler
  */
-public class MainHelper extends Application {
+@SpringBootApplication
+public class MainHelper extends MvvmfxSpringApplication {
 
 	private Stage primaryStage;
-	private Parent rootLayout;
 
 	public MainHelper() {
 	}
 
 	@Override
-	public void start(Stage primaryStage) throws Exception {
-		this.primaryStage = primaryStage;
-		this.primaryStage.setTitle("Java2Yuml");
+	public void startMvvmfx(Stage stage) throws Exception {
+		Parent root = FluentViewLoader.fxmlView(YumlView.class).load().getView();
 
-		initRootLayout();
-	}
+		stage.setScene(new Scene(root));
+		stage.show();
 
-	public void initRootLayout() {
-		try {
-			FXMLLoader loader = new FXMLLoader();
-			loader.setLocation(MainHelper.class.getResource("/app.fxml"));
-			rootLayout = loader.load();
-
-			Scene scene = new Scene(rootLayout);
-			primaryStage.setScene(scene);
-			primaryStage.show();
-		} catch (IOException e) {
-			throw new RuntimeException("Unable to load app.fxml", e);
-		}
-	}
-
-	public Stage getPrimaryStage() {
-		return primaryStage;
+		primaryStage = stage;
+		primaryStage.setTitle("Java2Yuml");
 	}
 
 }

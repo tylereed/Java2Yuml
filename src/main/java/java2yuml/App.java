@@ -54,15 +54,15 @@ public class App {
 		var listener = new ClassHierarchyListener();
 		logger.fine("Walking folder " + javaFolder);
 
-		System.out.println("Testing sequential");
+		//System.out.println("Testing sequential");
 		List<Declaration> classes = time(() -> {
 			walkFolder(javaFolder, listener);
 			return listener.getDeclarations();
 		});
 
-		System.out.println("Testing parallel");
-		List<Declaration> classes2 = time(() -> walkFolderParallel(javaFolder, ClassHierarchyListener::new,
-				ClassHierarchyListener::getDeclarations));
+//		System.out.println("Testing parallel");
+//		List<Declaration> classes2 = time(() -> walkFolderParallel(javaFolder, ClassHierarchyListener::new,
+//				ClassHierarchyListener::getDeclarations));
 
 		try (PrintWriter out = new PrintWriter("out.yuml")) {
 			printYuml(classes, out);
