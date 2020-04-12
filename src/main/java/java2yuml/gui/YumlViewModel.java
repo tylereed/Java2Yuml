@@ -29,6 +29,9 @@ public class YumlViewModel implements ViewModel {
 	private ListProperty<Declaration> selectedClassesList;
 
 	private BooleanProperty showAncestors, showDescendents;
+	
+	
+	private BooleanProperty loading;
 
 	public YumlViewModel() {
 		showClasses = new SimpleBooleanProperty(true);
@@ -41,6 +44,9 @@ public class YumlViewModel implements ViewModel {
 
 		showAncestors = new SimpleBooleanProperty();
 		showDescendents = new SimpleBooleanProperty();
+		
+		loading = new SimpleBooleanProperty();
+		
 		initBindings();
 	}
 
@@ -102,6 +108,18 @@ public class YumlViewModel implements ViewModel {
 
 	public BooleanProperty showDescendentsProperty() {
 		return showDescendents;
+	}
+	
+	public boolean isLoading() {
+		return loading.get();
+	}
+	
+	public void setLoading(boolean loading) {
+		this.loading.set(loading);
+	}
+	
+	public BooleanProperty loadingProperty() {
+		return loading;
 	}
 
 }

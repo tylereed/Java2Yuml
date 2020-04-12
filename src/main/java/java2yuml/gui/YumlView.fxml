@@ -3,32 +3,43 @@
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.CheckBox?>
 <?import javafx.scene.control.ListView?>
+<?import javafx.scene.control.ProgressIndicator?>
 <?import javafx.scene.control.Separator?>
 <?import javafx.scene.control.TextArea?>
 <?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
 
-<VBox prefHeight="400.0" prefWidth="640.0" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="java2yuml.gui.YumlView">
-  <children>
-      <BorderPane prefHeight="200.0" prefWidth="200.0" VBox.vgrow="ALWAYS">
-         <center>
-            <TextArea fx:id="txtClasses" prefHeight="200.0" prefWidth="200.0" BorderPane.alignment="CENTER" />
-         </center>
-         <left>
-            <VBox prefHeight="200.0" prefWidth="100.0" BorderPane.alignment="CENTER">
-               <children>
-                  <Button mnemonicParsing="false" onAction="#loadFolder" text="Load Folder" />
-                  <Separator orientation="VERTICAL" prefHeight="200.0" />
-                  <CheckBox fx:id="chkClasses" mnemonicParsing="false" text="Classes" />
-                  <CheckBox fx:id="chkInterfaces" mnemonicParsing="false" text="Interfaces" />
-                  <CheckBox fx:id="chkEnums" mnemonicParsing="false" text="Enums" />
-                  <ListView fx:id="lstClasses" minHeight="-Infinity" minWidth="-Infinity" prefHeight="300.0" prefWidth="250.0" />
-                  <Separator orientation="VERTICAL" prefHeight="200.0" />
-                  <CheckBox fx:id="chkAncestors" mnemonicParsing="false" text="Ancestors" />
-                  <CheckBox fx:id="chkDescendents" mnemonicParsing="false" text="Descendents" />
-               </children>
-            </VBox>
-         </left>
-      </BorderPane>
-  </children>
-</VBox>
+<StackPane xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="java2yuml.gui.YumlView">
+   <children>
+      <VBox prefHeight="400.0" prefWidth="640.0">
+        <children>
+            <BorderPane prefHeight="200.0" prefWidth="200.0" VBox.vgrow="ALWAYS">
+               <center>
+                  <TextArea fx:id="txtClasses" prefHeight="200.0" prefWidth="200.0" BorderPane.alignment="CENTER" />
+               </center>
+               <left>
+                  <VBox prefHeight="200.0" prefWidth="100.0" BorderPane.alignment="CENTER">
+                     <children>
+                        <Button mnemonicParsing="false" onAction="#loadFolder" text="Load Folder" />
+                        <Separator orientation="VERTICAL" prefHeight="200.0" />
+                        <CheckBox fx:id="chkClasses" mnemonicParsing="false" text="Classes" />
+                        <CheckBox fx:id="chkInterfaces" mnemonicParsing="false" text="Interfaces" />
+                        <CheckBox fx:id="chkEnums" mnemonicParsing="false" text="Enums" />
+                        <ListView fx:id="lstClasses" minHeight="-Infinity" minWidth="-Infinity" prefHeight="300.0" prefWidth="250.0" />
+                        <Separator orientation="VERTICAL" prefHeight="200.0" />
+                        <CheckBox fx:id="chkAncestors" mnemonicParsing="false" text="Ancestors" />
+                        <CheckBox fx:id="chkDescendants" mnemonicParsing="false" text="Descendants" />
+                     </children>
+                  </VBox>
+               </left>
+            </BorderPane>
+        </children>
+      </VBox>
+      <VBox fx:id="pnlSpinner" alignment="CENTER" pickOnBounds="false" prefHeight="200.0" prefWidth="100.0" style="-fx-background-color: FAFAD233;">
+         <children>
+            <ProgressIndicator />
+         </children>
+      </VBox>
+   </children>
+</StackPane>
